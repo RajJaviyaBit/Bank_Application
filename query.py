@@ -95,3 +95,10 @@ def get_fname(acc_no: int):
     a = db.query(Accounts.fname).filter(Accounts.acc_no == acc_no).first()
     db.close()
     return a[0]
+
+
+def get_transaction_history(acc_no : int):
+    pg = connect()
+    result = pg.query(Transaction).filter(Transaction.acc == acc_no).all()
+    pg.close()
+    return result

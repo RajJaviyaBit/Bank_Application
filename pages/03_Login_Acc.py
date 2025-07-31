@@ -4,7 +4,7 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-from query import get_fname
+from query import *
 
 
 
@@ -30,11 +30,14 @@ def login(acc_no : int, password : str):
         st.session_state.logged_in = True
     elif r.status_code == 401:
         st.write("Wrong Password.")
+        time.sleep(3)
 
     elif r.status_code == 404:
         st.error("Account Not found")
+        time.sleep(3)
     else:
         st.error("Something went wrong")
+        time.sleep(3)
 
 
 
@@ -166,6 +169,15 @@ if st.session_state.logged_in :
                 st.error(answer['error'])
             
                 
+    with st.expander("Transaction History"):
+        res = get_transaction_history(st.session_state.logged_acc_no)
+        if len(res) == 0:
+            st.write("No Transaction yet...")
+        else:
+            for i in res:
+                st.write(i.tran_id, i.date, i.acc, i.amount, i.tran_type)
+
+
 
     with st.expander("Delete Account"):
         st.write(st.session_state.logged_acc_no)
