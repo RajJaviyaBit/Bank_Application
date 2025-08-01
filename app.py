@@ -120,7 +120,7 @@ def del_acc(acc_no : int) -> dict:
 
 
 @app.patch("/deposit")
-def acc_deposite(dep : acc_deposite):
+def account_deposite(dep : acc_deposite):
     try:
         result = fetch_acc(dep.acc_no)
         if result == None:
@@ -169,3 +169,11 @@ def get_balance(acc_no :int):
         logger.error(f"While hitting get_balance API:- {str(e)}")
         
 
+@app.get("/tran_hist")
+def transaction(acc : int):
+    try:
+        res = get_transaction_history(acc)
+        logger.info(f"While hitting tran_hist API:- {acc}'s history fetched successfully.")
+        return res
+    except Exception as e:
+        logger.error(f"While hitting tran_hist API:- {acc}'s tran history error :- {str(e)}")
