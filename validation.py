@@ -26,10 +26,10 @@ class deatil(BaseModel):
 
 class acc_deposite(BaseModel):
     acc_no :Annotated[int, Field(..., description="Enter Your Account No", examples= [1010, 1020])]
-    amount : Annotated[int, Field(..., description="Enter Amount you wamt to deposite", examples= [1000, 2000])]
+    amount : Annotated[float, Field(..., description="Enter Amount you wamt to deposite", examples= [1000, 2000])]
 class acc_withdraw_validation(BaseModel):
     acc_no :Annotated[int, Field(..., description="Enter Your Account No", examples= [1010, 1020])]
-    amount : Annotated[int, Field(..., description="Enter Amount you wamt to deposite", examples= [1000, 2000])]
+    amount : Annotated[float, Field(..., description="Enter Amount you wamt to deposite", examples= [1000, 2000])]
     password: Annotated[str ,  Field(...,  descreption = " Enter Your password", examples = ["WITHDRAW"])]
 class login_acc(BaseModel):
     acc_no :Annotated[int, Field(..., description="Enter Your Account No", examples= [1010, 1020])]

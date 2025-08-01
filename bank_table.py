@@ -1,9 +1,5 @@
 from sqlalchemy import ForeignKey, Column, String, Integer, CHAR, DateTime, Float
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
-from postgresconnector import connect
-from fastapi.responses import JSONResponse
-from fastapi import  HTTPException
 
 Base = declarative_base()
 
@@ -35,15 +31,6 @@ class Accounts(Base):
         self.balance = balance
         self.password = password
         
-    def show_balance(self) -> int:
-
-        """
-        This method is getter method for balance.
-        
-        It returns the balance of the object that 
-        
-        """
-        return self.balance
 
 
 
@@ -55,68 +42,8 @@ class Transaction(Base):
     acc = Column("acc_no", Integer, ForeignKey(Accounts.acc_no))
     amount = Column("amount", Float)
     tran_type = Column("tran_type", String)
+    balance = Column("balance", Float)
     
     
     def __init__(self, acc: int) -> None:
         self.acc = acc
-
-    def deposite(self, amount: int) -> str:
-
-        """
-        Deposite Method is for Deposite of Amount that is varible,
-        amount is deposited in Account that object on which this method is called.
-
-        It expect Interger as amount parameter.
-
-        It stores Transaction Type, Transaction Date time, Transaction ID and Update balance in database.        
-        
-        After calling this method make sure to close session.
-        """
-        session = connect()
-        self.tran_type = "deposit"
-        self.date = datetime.now()
-        self.amount = amount
-        result = session.query(Accounts).filter(Accounts.acc_no == self.acc)
-        self.balance = result[0].balance + self.amount
-        session.query(Accounts).filter(Accounts.acc_no == self.acc).update({Accounts.balance : self.balance})
-        session.commit()
-
-        return f"{amount} is deposited, Your balance is {self.balance}"
-
-    def withdraw(self, amount : int, password : str) -> str:
-        """
-        withdraw Method is for withdrawal of Amount that is varible,
-        amount will widrawal from the Account that object on which this method is called.
-
-        It expect Interger as amount parameter.
-
-        If withdrawal amount is lesser then balance then It will ask for password of the account.
-
-        If the password is correct then withdrawal will be successful.
-
-        On successful withdrawal, It stores Transaction Type, Transaction Date time, Transaction ID and Update balance in database.        
-        
-        After calling this method make sure to close session.
-        """
-        session = connect()
-        result = session.query(Accounts).filter(Accounts.acc_no == self.acc)
-        self.date = datetime.now()
-        self.amount = amount
-        if amount < result[0].balance:           
-            if password == result[0].password:
-                self.tran_type = "withdraw"
-                self.balance = result[0].balance - self.amount
-                session.query(Accounts).filter(Accounts.acc_no == self.acc).update({Accounts.balance : self.balance})
-                session.add(self)
-                session.commit()
-                session.close()
-                return JSONResponse(content={"detail": f"{amount} withdraw successfully, Your balance is {self.balance}."}, status_code=200)
-            else:
-                self.tran_type = "unsuccessfull as wrong password"
-                raise HTTPException(status_code=401, detail= "wrong password" )
-                
-        else: 
-            self.tran_type = "unsuccessful as amount is more than bal."
-            raise HTTPException(status_code=406, detail="Withdrawal amount is more than balance...")
-            # return JSONResponse(content={"detail":"Withdrawal amount is more than balance..." }, status_code=406)
-        

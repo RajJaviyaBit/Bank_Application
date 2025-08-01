@@ -5,16 +5,21 @@ import os
 import time
 from dotenv import load_dotenv
 from query import *
+import pandas as pd
 
 
 
 load_dotenv()
+
+base_url = os.getenv("BASE_URL")
+
 
 
 def login(acc_no : int, password : str):
     r = requests.post(f"{base_url}/login", json={"acc_no" : acc_no, "password" : password})
     a = json.loads(r.text)
     if r.status_code == 200:
+        
         if "logged_acc_no" not in st.session_state:           
             st.session_state["logged_acc_no"] = st.session_state["acc_no"]  
         if "fname" not in st.session_state:      
@@ -29,15 +34,12 @@ def login(acc_no : int, password : str):
             st.session_state["logged_password"] = st.session_state["password"]
         st.session_state.logged_in = True
     elif r.status_code == 401:
-        st.write("Wrong Password.")
-        time.sleep(3)
-
+        st.error("Wrong Password.")
     elif r.status_code == 404:
         st.error("Account Not found")
-        time.sleep(3)
     else:
-        st.error("Something went wrong")
-        time.sleep(3)
+        st.error("Something went wrong")        
+    return r.status_code
 
 
 
@@ -52,7 +54,6 @@ def before_rerun():
     st.rerun()
 
 
-base_url = os.getenv("BASE_URL")
 def logout():
     del st.session_state.logged_in
     del st.session_state.fname
@@ -123,14 +124,14 @@ if st.session_state.logged_in :
             
             if r.status_code == 200:
                 st.success("Details Update successfully...")
-                st.write("login again")
+                st.success("login again")
                 st.session_state.logged_in = False
                 time.sleep(5)
                 logout()
             
 
     with st.expander("Deposit"):
-        st.number_input("Enter amount:- ", key = "deposit_amount")
+        st.number_input("Enter amount:- ", key = "deposit_amount", step= 1)
         body = {
                 "acc_no": st.session_state.logged_acc_no,
                 "amount": st.session_state.deposit_amount
@@ -147,7 +148,7 @@ if st.session_state.logged_in :
                 st.error(res["error"])
 
     with st.expander("Withdraw"):
-        amount_withdraw =st.number_input("Enter amount:- ", key= "withdraw_amount")
+        amount_withdraw =st.number_input("Enter amount:- ", key= "withdraw_amount", step = 1)
         pass_withdraw = st.text_input("Enter your password.", key= "withdraw_password")
         # st.session_state.withdraw_amount = amount_withdraw
         # st.session_state.withdraw_password = pass_withdraw
@@ -174,8 +175,29 @@ if st.session_state.logged_in :
         if len(res) == 0:
             st.write("No Transaction yet...")
         else:
+            tra_id = []
+            date = []
+            accno = []
+            amnt = []
+            tra_type = []
+            bal = []
             for i in res:
-                st.write(i.tran_id, i.date, i.acc, i.amount, i.tran_type)
+                tra_id.append(i.tran_id)
+                date.append(i.date)
+                accno.append(i.acc)
+                amnt.append(i.amount)
+                tra_type.append(i.tran_type)
+                bal.append(i.balance)
+            tran_dict = {
+                            "Transaction ID" : tra_id,
+                            "Date Time" : date,
+                            "Account no" : accno,
+                            "Amount" : amnt,
+                            "Transaction Type" : tra_type,
+                            "Balance" : bal
+                        }
+            df = pd.DataFrame(tran_dict) 
+            st.table(df)   
 
 
 
@@ -199,9 +221,10 @@ else:
 
     
     if st.button("Login"):
-        st.session_state.fname = get_fname(st.session_state.acc_no)
-
-        login(st.session_state.acc_no, st.session_state.password)
+        a = login(st.session_state.acc_no, st.session_state.password)
+        if a == 200:
+            st.success("Login Successful...")
+        time.sleep(3)
         st.rerun()
         
         
